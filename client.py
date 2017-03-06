@@ -10,17 +10,16 @@ import tensorflow as tf
     and everything will be awesome!
 '''
 
-training_point_size = 10
 def send_training_point(image_vector, label):
-    payload = {"foo":"bar",
-               "foz":"bat",
-               "training_point":simplejson.dumps(image_vector.tolist()),
+    payload = {"training_point":simplejson.dumps(image_vector.tolist()),
                "classification":simplejson.dumps(label.tolist())
     }
 
     res = requests.post(url("train"), json=payload)
 
 def test_server():
+    ## fetch the test data from the mnist data-set, and send to
+    ## the server with the intent of measuring the accuracy of the model
     payload = {"test_image": simplejson.dumps(mnist.test.images.tolist()),
                "test_labels": simplejson.dumps(mnist.test.labels.tolist())
                }
@@ -50,6 +49,8 @@ if __name__ == '__main__':
     FLAGS, unparsed = parser.parse_known_args()
     mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
     print("training server")
+    ## fetch training points from the mnist dataset, and send them
+    ## to the server
     for i in range(10):
         image_vector, label = make_training_point(i)
         send_training_point(image_vector, label)

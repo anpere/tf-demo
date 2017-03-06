@@ -17,6 +17,7 @@
 
 See extensive documentation at
 http://tensorflow.org/tutorials/mnist/beginners/index.md
+https://github.com/tensorflow/blob/master/tensorflow/examples/tutorials/mnist/mnist_softmax.py
 """
 from __future__ import absolute_import
 from __future__ import division

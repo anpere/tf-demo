@@ -7,21 +7,24 @@ import logging
  setup a server that handles requests made by clients
   - listens for training points
   - will also classify points
+ This server still needs some love and care.
+ /test throws errors. It seems like pieces of the model
+ aren't in the same graph for unsure reasons see:
+ http://stackoverflow.com/questions/40281170/tensorflow-how-to-ensure-tensors-are-in-the-same-graph
+
 '''
 
 app = Flask(__name__)
 
 @app.route("/test", methods=["GET"])
 def test():
-    ## TODO: not really sure who should access test data...
+    ## This was a ""patch"" to the problem mentioned above
+    ## Be critical of this code, it doesn't work
     with tf.Session(graph=g) as sess:
         print("Testing")
         test_images = request.json["test_image"]
         test_labels = request.json["test_labels"]
-        print(tf.argmax(y, 1))
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        print(correct_prediction)
-        print(tf.cast(correct_prediction, tf.float32))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         print(sess.run(accuracy, feed_dict={x: test_images,
                                              y_: test_labels}))
@@ -29,8 +32,12 @@ def test():
         return jsonify({"ok": "ok", "accuracy":"TODO"})
 @app.route("/classify", methods=["GET"])
 def classify():
+    ## TODO: we'll probably want to have the server be able to classify
+    ## data points. Not sure how to classify points with a model using
+    ## tf. It won't be hard to do though.
     vector = request.json["vector"]
     return jsonify({"ok":"ok"})
+
 @app.route("/train", methods=["POST"])
 def train():
     global counter
