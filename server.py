@@ -10,28 +10,23 @@ import logging
 '''
 
 app = Flask(__name__)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
-counter = 0
-x = tf.placeholder(tf.float32, [None, 784])
-W = tf.Variable(tf.zeros([784, 10]))
-b = tf.Variable(tf.zeros([10]))
-y = tf.matmul(x, W) + b
-
-y_ = tf.placeholder(tf.float32, [None, 10])
 
 @app.route("/test", methods=["GET"])
 def test():
     ## TODO: not really sure who should access test data...
-    print("Testing")
-    test_images = request.json["test_image"]
-    test_labels = request.json["test_labels"]
-    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    print(sess.run(accuracy, feed_dict={x: test_images,
-                                         y_: test_labels}))
-    print("DONE")
-    return jsonify({"ok": "ok", "accuracy":"TODO"})
+    with tf.Session(graph=g) as sess:
+        print("Testing")
+        test_images = request.json["test_image"]
+        test_labels = request.json["test_labels"]
+        print(tf.argmax(y, 1))
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        print(correct_prediction)
+        print(tf.cast(correct_prediction, tf.float32))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        print(sess.run(accuracy, feed_dict={x: test_images,
+                                             y_: test_labels}))
+        print("DONE")
+        return jsonify({"ok": "ok", "accuracy":"TODO"})
 @app.route("/classify", methods=["GET"])
 def classify():
     vector = request.json["vector"]
@@ -42,7 +37,8 @@ def train():
     counter +=1
     vector = request.json["training_point"]
     label = request.json["classification"]
-    sess.run(train_step, feed_dict={x: vector, y_: label})
+    with tf.Session(graph=g) as sess:
+        sess.run(train_step, feed_dict={x: vector, y_: label})
     return jsonify({"ok":"ok"})
 
 if __name__ == "__main__":
@@ -55,12 +51,21 @@ if __name__ == "__main__":
     ## set up the model
 
     # define loss and optimizer
+    counter = 0
+    g = tf.Graph()
+    with g.as_default():
+        x = tf.placeholder(tf.float32, [None, 784])
+        W = tf.Variable(tf.zeros([784, 10]))
+        b = tf.Variable(tf.zeros([10]))
+        y = tf.matmul(x, W) + b
+        y_ = tf.placeholder(tf.float32, [None, 10])
+        
+        cross_entropy = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
+        train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+        sess = tf.InteractiveSession()
+        tf.global_variables_initializer().run()
 
-    cross_entropy = tf.reduce_mean(
-        tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
-    train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
-    sess = tf.InteractiveSession()
-    tf.global_variables_initializer().run()
     
     try:
         app.run(host="0.0.0.0",debug=True)

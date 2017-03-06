@@ -77,7 +77,10 @@ def main(_):
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
   # Test trained model
+  print(tf.argmax(y, 1))
   correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+  print(correct_prediction)
+  print(tf.cast(correct_prediction, tf.float32))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
   print(sess.run(accuracy, feed_dict={x: mnist.test.images,
                                       y_: mnist.test.labels}))
