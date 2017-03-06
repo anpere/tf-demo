@@ -74,7 +74,6 @@ def main(_):
   for _ in range(1000):
     batch_xs, batch_ys = mnist.train.next_batch(100)
     ## print("batch xs, ", sums(batch_xs))
-    print("batch ys, ", batch_ys)
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
   # Test trained model

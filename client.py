@@ -21,7 +21,13 @@ def send_training_point(image_vector, label):
     res = requests.post(url("train"), json=payload)
 
 def test_server():
-    res = requests.get(url("test"))
+    payload = {"test_image": simplejson.dumps(mnist.test.images.tolist()),
+               "test_labels": simplejson.dumps(mnist.test.labels.tolist())
+               }
+    res = requests.get(url("test"), json=payload)
+    print(res)
+    resj = res.json()
+    print(resj)
     print(res["accuracy"])
 
 def make_training_point(seed):
@@ -43,8 +49,10 @@ if __name__ == '__main__':
     parser.add_argument('--data-dir', type=str, default='/tmp/tensorflow/mnist/input_data', help='Directory for storing input data')
     FLAGS, unparsed = parser.parse_known_args()
     mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
+    print("training server")
     for i in range(10):
         image_vector, label = make_training_point(i)
         send_training_point(image_vector, label)
+    print("testing server")
     test_server()
 
